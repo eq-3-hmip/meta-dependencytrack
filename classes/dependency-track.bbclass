@@ -168,7 +168,7 @@ def get_licenses(d) :
                         break
                 except FileNotFoundError:
                     pass
-            license_json.append({"expression" : license_expression})
+            # license_json.append({"expression" : license_expression})
         return license_json 
     return None
 
