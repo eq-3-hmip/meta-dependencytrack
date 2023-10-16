@@ -58,11 +58,22 @@ python do_dependencytrack_collect() {
     for index, cpe in enumerate(oe.cve_check.get_cpe_ids(name, version)):
         bb.debug(2, f"Collecting pagkage {name}@{version} ({cpe})")
         if not next((c for c in sbom["components"] if c["cpe"] == cpe), None):
+            
+            comp_names = names[index].split(':')
+            comp_name = names[index] # fallback
+            comp_vendor = "" # initial empty
+            
+            if len(comp_names) == 2:
+                comp_name = comp_names[1]
+                comp_vendor = comp_names[0]
+            
             component_json = {
-                "name": names[index],
+                "name": comp_name,
+                "group": comp_vendor,
                 "version": version,
                 "cpe": cpe,
             }
+            
             license_json = get_licenses(d)
             if license_json:
                 component_json["licenses"] = license_json
