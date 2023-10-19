@@ -45,7 +45,6 @@ do_dependencytrack_init[eventmask] = "bb.event.BuildStarted"
 
 python do_dependencytrack_collect() {
     import json
-    import oe.cve_check
     from pathlib import Path
 
     # load the bom
@@ -54,22 +53,14 @@ python do_dependencytrack_collect() {
     sbom = read_sbom(d)
 
     # update it with the new package info
-    names = name.split()
-    for index, cpe in enumerate(oe.cve_check.get_cpe_ids(name, version)):
-        bb.debug(2, f"Collecting pagkage {name}@{version} ({cpe})")
-        if not next((c for c in sbom["components"] if c["cpe"] == cpe), None):
-            
-            comp_names = names[index].split(':')
-            comp_name = names[index] # fallback
-            comp_vendor = "" # initial empty
-            
-            if len(comp_names) == 2:
-                comp_name = comp_names[1]
-                comp_vendor = comp_names[0]
+
+    for index, o in enumerate(get_cpe_ids(name, version)):
+        bb.debug(2, f"Collecting package {name}@{version} ({o.cpe})")
+        if not next((c for c in sbom["components"] if c["cpe"] == o.cpe), None):
             
             component_json = {
-                "name": comp_name,
-                "group": comp_vendor,
+                "name": o.product,
+                "group": o.vendor,
                 "version": version,
                 "cpe": cpe,
             }
@@ -183,3 +174,23 @@ def get_licenses(d) :
         return license_json 
     return None
 
+def get_cpe_ids(cve_product, version):
+    """
+    Get list of CPE identifiers for the given product and version
+    """
+
+    version = version.split("+git")[0]
+
+    cpe_ids = []
+    for product in cve_product.split():
+        # CVE_PRODUCT in recipes may include vendor information for CPE identifiers. If not,
+        # use wildcard for vendor.
+        if ":" in product:
+            vendor, product = product.split(":", 1)
+        else:
+            vendor = "*"
+
+        cpe_id = 'cpe:2.3:a:{}:{}:{}:*:*:*:*:*:*:*'.format(vendor, product, version)
+        cpe_ids.append(type('',(object,),{"cpe": cpe_id, "product": product, "vendor": vendor if vendor != "*" else ""})())
+
+    return cpe_ids
