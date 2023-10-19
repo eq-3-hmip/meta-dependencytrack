@@ -62,7 +62,7 @@ python do_dependencytrack_collect() {
                 "name": o.product,
                 "group": o.vendor,
                 "version": version,
-                "cpe": cpe,
+                "cpe": o.cpe,
             }
             
             license_json = get_licenses(d)
