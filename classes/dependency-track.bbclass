@@ -13,7 +13,7 @@ DEPENDENCYTRACK_LOCK ??= "${DEPENDENCYTRACK_TMP}/bom.lock"
 
 # Set DEPENDENCYTRACK_UPLOAD to False if you want to control the upload in other
 # steps.
-DEPENDENCYTRACK_UPLOAD ??= "True"
+DEPENDENCYTRACK_UPLOAD ??= "False"
 DEPENDENCYTRACK_PROJECT ??= ""
 DEPENDENCYTRACK_API_URL ??= "http://localhost:8081/api"
 DEPENDENCYTRACK_API_KEY ??= ""
