@@ -59,6 +59,7 @@ python do_dependencytrack_collect() {
         if not next((c for c in sbom["components"] if c["cpe"] == o.cpe), None):
             
             component_json = {
+                "type": "application",
                 "name": o.product,
                 "group": o.vendor,
                 "version": version,
