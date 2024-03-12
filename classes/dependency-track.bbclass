@@ -106,6 +106,26 @@ python do_dependencytrack_collect() {
                     "affects": [{"ref": f"urn:cdx:{str(uuid.uuid4())}/1#{bom_ref}"}]
                 })
 
+            # populate vex file with ignored CVEs defined in CVE_CHECK_IGNORE
+            # TODO: In newer versions of Yocto CVE_CHECK_IGNORE is deprecated in favour of CVE_STATUS, which we should also take into account here
+            cve_check_ignore = d.getVar("CVE_CHECK_IGNORE")
+            if cve_check_ignore is not None:
+                for ignored_cve in cve_check_ignore.split():
+                    bb.debug(2, f"Found ignore statement for CVE {ignored_cve} in {name}@{version}")
+                    vex["vulnerabilities"].append({
+                        "id": ignored_cve,
+                        # vex documents require a valid source, see https://github.com/DependencyTrack/dependency-track/issues/2977
+                        # this should always be NVD for yocto CVEs.
+                        "source": {"name": "NVD", "url": "https://nvd.nist.gov/"},
+                        # setting not-affected state for ignored CVEs
+                        "analysis": {"state": "not_affected"},
+                        # ref needs to be in bom-link format, however the uuid does not actually have to match the SBOM document uuid,
+                        # see https://github.com/DependencyTrack/dependency-track/issues/1872#issuecomment-1254265425
+                        # This is not ideal, as "resolved" will be applied to all components within the project containing the CVE,
+                        # however component specific resolving seems not to work at the moment.
+                        "affects": [{"ref": f"urn:cdx:{str(uuid.uuid4())}/1#{bom_ref}"}]
+                    })
+
     # write it back to the deploy directory
     write_json(d.getVar("DEPENDENCYTRACK_SBOM"), sbom)
     write_json(d.getVar("DEPENDENCYTRACK_VEX"), vex)
