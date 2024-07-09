@@ -78,6 +78,7 @@ python do_dependencytrack_collect() {
             bom_ref = str(uuid.uuid4())
 
             component_json = {
+                "type": "application",
                 "name": o.product,
                 "group": o.vendor,
                 "version": version,
