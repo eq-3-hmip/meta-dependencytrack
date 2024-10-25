@@ -77,8 +77,13 @@ python do_dependencytrack_collect() {
         if not next((c for c in sbom["components"] if c["cpe"] == o.cpe), None):
             bom_ref = str(uuid.uuid4())
 
+            type = 'application'
+            # override type for linux kernel
+            if o.product == 'linux_kernel':
+                type = 'operating-system'
+
             component_json = {
-                "type": "application",
+                "type": type,
                 "name": o.product,
                 "group": o.vendor,
                 "version": version,
@@ -286,8 +291,12 @@ def get_cpe_ids(cve_product, version):
             vendor, product = product.split(":", 1)
         else:
             vendor = "*"
-
-        cpe_id = 'cpe:2.3:a:{}:{}:{}:*:*:*:*:*:*:*'.format(vendor, product, version)
+        # set part identifier for linux kernel to 'o' which should be o(operating system) instead of a(pplication)
+        part = 'a'
+        if product == 'linux_kernel':
+            part = 'o'
+        # Assemble cpe search string
+        cpe_id = 'cpe:2.3:{}:{}:{}:{}:*:*:*:*:*:*:*'.format(part, vendor, product, version)
         cpe_ids.append(type('',(object,),{"cpe": cpe_id, "product": product, "vendor": vendor if vendor != "*" else ""})())
 
     return cpe_ids
